@@ -3,18 +3,18 @@ const router = express.Router();
 const multer = require("multer");
 const News = require("../../models/News");
 const adminAuth = require("../../middleware/adminAuth");
+const upload = require("../../middleware/upload");
+// // STORAGE CONFIG
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/news");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + file.originalname);
+//   },
+// });
 
-// STORAGE CONFIG
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/news");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 /* =========================
    CREATE NEWS (POST)

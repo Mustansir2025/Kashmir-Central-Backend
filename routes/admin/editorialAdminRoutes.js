@@ -5,18 +5,9 @@ const multer = require("multer");
 const Editorial = require("../../models/Editorial");
 const Issue = require("../../models/Issue");
 const adminAuth = require("../../middleware/adminAuth");
+const upload = require("../../middleware/upload");
 
 // Multer config (same style as reviews/articles)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/editorials");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
 
 /* =========================
    CREATE EDITORIAL

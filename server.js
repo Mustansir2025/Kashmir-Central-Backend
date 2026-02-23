@@ -17,9 +17,6 @@ app.use(
   }),
 );
 
-// Serve uploads
-app.use("/uploads", express.static("uploads"));
-
 // Routes
 app.use("/api/admin/auth", require("./routes/admin/auth"));
 
@@ -43,6 +40,7 @@ app.use("/api/editorials", editorialRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  server.setTimeout(5 * 60 * 1000);
 });

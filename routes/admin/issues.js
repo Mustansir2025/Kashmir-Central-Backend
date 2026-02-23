@@ -3,18 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const Issue = require("../../models/Issue");
 const adminAuth = require("../../middleware/adminAuth");
-
-// STORAGE
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/issues");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
+const upload = require("../../middleware/upload");
 
 /* ===============================
    Get all ISSUEs
@@ -31,38 +20,120 @@ router.get("/", adminAuth, async (req, res) => {
 /* ===============================
    CREATE ISSUE
 ================================ */
+// router.post(
+//   "/",
+//   adminAuth,
+//   upload.fields([
+//     { name: "coverImage", maxCount: 1 },
+//     { name: "pdf", maxCount: 1 },
+//   ]),
+//   async (req, res) => {
+//     try {
+//       if (!req.files?.pdf) {
+//         return res.status(400).json({ error: "PDF is required" });
+//       }
+//       const pdfPath = req.files?.pdf?.[0]?.path;
+//       console.log("PDF PATH BEFORE SAVE:", pdfPath);
+
+//       console.log("PDF FILE OBJECT:");
+//       console.dir(req.files.pdf[0], { depth: null });
+
+//       const issue = new Issue({
+//         title: req.body.title,
+//         slug: req.body.slug,
+//         description: req.body.description,
+//         createdAt: req.body.publishDate || Date.now(),
+//         isLatest: req.body.isLatest === "true",
+//         coverImage: req.files.coverImage
+//           ? req.files.coverImage[0].secure_url
+//           : null,
+//         pdf: req.files.pdf[0].secure_url,
+//       });
+
+//       // Only one latest issue allowed
+//       if (issue.isLatest) {
+//         await Issue.updateMany({}, { isLatest: false });
+//       }
+
+//       await issue.save();
+//       res.json(issue);
+//     } catch (err) {
+//       console.error("========== ERROR START ==========");
+//       console.dir(err, { depth: null });
+//       console.error("========== ERROR END ==========");
+
+//       res.status(500).json({
+//         message: err.message,
+//         error: err,
+//       });
+//     }
+
+//     // } catch (err) {
+//     //   console.log("ERROR:", err);
+//     //   res.status(500).json({ error: err.message });
+//     // }
+//   },
+// );
 router.post(
   "/",
   adminAuth,
-  upload.fields([
-    { name: "coverImage", maxCount: 1 },
-    { name: "pdf", maxCount: 1 },
-  ]),
+  (req, res, next) => {
+    const contentType = req.headers["content-type"] || "";
+
+    if (contentType.startsWith("multipart/form-data")) {
+      return upload.fields([
+        { name: "coverImage", maxCount: 1 },
+        { name: "pdf", maxCount: 1 },
+      ])(req, res, next);
+    }
+
+    next();
+  },
+
   async (req, res) => {
     try {
-      if (!req.files?.pdf) {
+      console.log("REQ BODY:", req.body);
+
+      const { title, slug, description } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ error: "Title missing" });
+      }
+
+      const pdfFromBody = req.body?.pdf;
+      const pdfFromFile = req.files?.pdf?.[0]?.secure_url;
+
+      const imageFromBody = req.body?.coverImage;
+      const imageFromFile = req.files?.coverImage?.[0]?.secure_url;
+
+      const finalPdf = pdfFromBody || pdfFromFile;
+      const finalImage = imageFromBody || imageFromFile || null;
+
+      if (!finalPdf) {
         return res.status(400).json({ error: "PDF is required" });
       }
 
       const issue = new Issue({
-        title: req.body.title,
-        slug: req.body.slug,
-        description: req.body.description,
-        createdAt: req.body.publishDate || Date.now(),
-        isLatest: req.body.isLatest === "true",
-        coverImage: req.files.coverImage ? req.files.coverImage[0].path : null,
-        pdf: req.files.pdf[0].path,
+        title,
+        slug,
+        description,
+        coverImage: finalImage,
+        pdf: finalPdf,
+        createdAt: req.body.publishDate
+          ? new Date(req.body.publishDate)
+          : Date.now(),
+        isLatest: req.body.isLatest === true || req.body.isLatest === "true",
       });
 
-      // Only one latest issue allowed
       if (issue.isLatest) {
         await Issue.updateMany({}, { isLatest: false });
       }
 
       await issue.save();
+
       res.json(issue);
     } catch (err) {
-      console.log(err);
+      console.error("ISSUE CREATE ERROR:", err);
       res.status(500).json({ error: err.message });
     }
   },

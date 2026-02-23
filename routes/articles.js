@@ -89,6 +89,9 @@ router.get("/category/:name", async (req, res) => {
   const Issue = require("../models/Issue");
 
   const latestIssue = await Issue.findOne({ isLatest: true });
+  if (!latestIssue) {
+    return res.status(404).json({ error: "Issue not found" });
+  }
 
   const articles = await Article.find({
     issue: latestIssue._id,
