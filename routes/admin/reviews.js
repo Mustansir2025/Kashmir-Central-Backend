@@ -3,21 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const BookReview = require("../../models/Review");
 const auth = require("../../middleware/adminAuth"); // same middleware used in other admin routes
-
-// =============================
-// MULTER CONFIG
-// =============================
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/reviews");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
-
+const upload = require("../../middleware/upload");
 // =============================
 // CREATE REVIEW
 // POST /api/admin/reviews

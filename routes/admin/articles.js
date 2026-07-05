@@ -3,6 +3,7 @@ const router = express.Router();
 const Article = require("../../models/Article");
 const upload = require("../../middleware/upload");
 const adminAuth = require("../../middleware/adminAuth");
+const slugify = require("slugify");
 
 // GET ALL
 router.get("/", adminAuth, async (req, res) => {
@@ -24,6 +25,11 @@ router.post("/", adminAuth, upload.single("image"), async (req, res) => {
   try {
     const body = { ...req.body };
 
+    const slug = slugify(req.body.title, {
+      lower: true,
+      strict: true,
+    });
+
     // FIX heroPosition
     if (body.heroPosition === "null" || body.heroPosition === "") {
       body.heroPosition = null;
@@ -34,6 +40,7 @@ router.post("/", adminAuth, upload.single("image"), async (req, res) => {
 
     const article = new Article({
       ...body,
+      slug,
       image: req.file ? req.file.path : null,
     });
 
@@ -50,6 +57,11 @@ router.put("/:id", adminAuth, upload.single("image"), async (req, res) => {
   try {
     const body = { ...req.body };
 
+    const slug = slugify(req.body.title, {
+      lower: true,
+      strict: true,
+    });
+
     if (body.heroPosition === "null" || body.heroPosition === "") {
       body.heroPosition = null;
     }
@@ -61,13 +73,15 @@ router.put("/:id", adminAuth, upload.single("image"), async (req, res) => {
       body.image = req.file.path;
     }
 
-    const article = await Article.findByIdAndUpdate(req.params.id, body, {
+    const article = await Article.findByIdAndUpdate({_id : req.params.id}, {...body, slug,}, {
       new: true,
     });
-
+     
     res.json(article);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+
+  } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: error.message });
   }
 });
 

@@ -2,23 +2,21 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
 const cors = require("cors");
-console.log("Mongo URI:", process.env.MONGO_URI);
+const cookieParser = require("cookie-parser");
+
 connectDB();
 
 const app = express();
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:3000",
     credentials: true,
   }),
 );
-
-// Serve uploads
-app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.use("/api/admin/auth", require("./routes/admin/auth"));
@@ -35,6 +33,8 @@ app.use("/api/admin/articles", require("./routes/admin/articles"));
 app.use("/api/admin/news", require("./routes/admin/news"));
 app.use("/api/news", require("./routes/news.js"));
 
+app.use("/api/admin/logout", require("./routes/admin/logout"));
+
 const editorialAdminRoutes = require("./routes/admin/editorialAdminRoutes");
 const editorialRoutes = require("./routes/editorialRoutes");
 
@@ -43,6 +43,7 @@ app.use("/api/editorials", editorialRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  server.setTimeout(5 * 60 * 1000);
 });

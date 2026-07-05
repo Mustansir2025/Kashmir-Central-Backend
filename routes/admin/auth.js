@@ -17,11 +17,19 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign(
     { id: admin._id },
-    process.env.JWT_SECRET, // later move to .env
-    { expiresIn: "30m" },
+    process.env.JWT_SECRET, 
+    { expiresIn: "45m" },
   );
 
-  res.json({ token });
+  res.cookie("accessToken", token, {
+  httpOnly: true,
+  secure: false,      // localhost
+  sameSite: "lax",
+  path: "/",
+  maxAge: 45 * 60 * 1000,
+});
+
+  res.json({ success: true });
 });
 
 module.exports = router;
