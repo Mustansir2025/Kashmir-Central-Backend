@@ -23,8 +23,9 @@ router.post("/login", async (req, res) => {
 
   res.cookie("accessToken", token, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none",
+  secure: true,
+  sameSite: "lax",
+  domain: ".kashmir-central.com",
   path: "/",
   maxAge: 45 * 60 * 1000,
 });
