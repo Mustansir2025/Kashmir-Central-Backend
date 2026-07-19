@@ -8,23 +8,25 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  "https://www.kashmir-central.com",
-  "https://kashmir-central.com",
-];
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+    if (
+      origin === "http://localhost:3000" ||
+      origin === "https://www.kashmir-central.com" ||
+      origin === "https://kashmir-central.com" ||
+      origin.endsWith(".vercel.app")
+    ) {
+      return callback(null, true);
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(cookieParser());
 app.use(express.json());
