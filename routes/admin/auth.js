@@ -23,8 +23,8 @@ router.post("/login", async (req, res) => {
 
   res.cookie("accessToken", token, {
   httpOnly: true,
-  secure: false,      // localhost
-  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "none",
   path: "/",
   maxAge: 45 * 60 * 1000,
 });
