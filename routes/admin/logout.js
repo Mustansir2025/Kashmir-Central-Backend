@@ -7,10 +7,12 @@ router.post("/", async (req, res) => {
     
     try{
         res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-        });
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax", 
+    domain: ".kashmir-central.com",
+    path: "/",
+  });
         res.json({ message: "Logged out" });
     } catch(error){
         console.log(error.message)
