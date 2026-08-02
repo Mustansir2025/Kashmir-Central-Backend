@@ -87,16 +87,28 @@ router.get("/latest", async (req, res) => {
 
 router.get("/category/:name", async (req, res) => {
   const Issue = require("../models/Issue");
+  const articles = await Article.aggregate([
+    {    $match: {
+        category: req.params.name
+      },
+    },
+    {
+       $lookup: {
+      from: "issues",
+      localField: "issue",
+      foreignField: "_id",
+      as: "issue"
+    }
+    },
+    
+    {
+    $sort: {
+      createdAt: -1,
+    },
+  },
+  ]).sort({ createdAt: -1 });
 
-  const latestIssue = await Issue.findOne({ isLatest: true });
-  if (!latestIssue) {
-    return res.status(404).json({ error: "Issue not found" });
-  }
 
-  const articles = await Article.find({
-    issue: latestIssue._id,
-    category: req.params.name,
-  }).sort({ createdAt: -1 });
 
   res.json(articles);
 });
